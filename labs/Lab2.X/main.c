@@ -37,7 +37,7 @@ _FGS(GCP_OFF);
 
 uint8_t timer2_cnt = 0;
 uint32_t static iteration = 0;
-clock_t pre_time;
+
 
 volatile unsigned int seconds_counter = 0;
 volatile unsigned int ms_counter = 0;
@@ -47,6 +47,7 @@ void __attribute__((__interrupt__)) _T1Interrupt(void) {
     // 1/32768 * 32768 = 1s
     LED2_PORT ^= 1;
     seconds_counter ++;
+    TMR2 = 0x0;
     IFS0bits.T1IF = 0;
 }
 
@@ -127,16 +128,19 @@ void lcdPrintTime() {
 
 void lcdReset() {
 //    lcd_clear();
+    TMR1 = 0x00;
+    TMR2 = 0x00;
     seconds_counter = 0;
     ms_counter = 0;
     lcd_locate(0,0);
     lcd_printf("%02u:%02u.%03u\r", seconds_counter/60, seconds_counter%60, ms_counter%1000);
 }
 
-void lcdPrintCounter() {
+void lcdPrintCounter(uint16_t diff) {
     lcd_locate(0,1);
-    lcd_printf("%.4f\r", (float)TMR3/(float)iteration);
-    TMR3 = 0x00;
+    lcd_printf("Cycle: %u\r", diff);
+    lcd_locate(0,2);
+    lcd_printf("Time: %.4f ms\r", (float)diff/10000);
 }
 
 int main(){
@@ -163,7 +167,7 @@ int main(){
     led_initialize();
     LED4_TRIS = 0; // set as output
     LED1_TRIS = 0; // set as output
-    LED2_TRIS = 0;
+    LED2_TRIS = 0; // set as output
     
     // init joystick
     bot_initialize();
@@ -171,19 +175,25 @@ int main(){
     uint8_t bnt1_state_previous = 0x0;
     uint8_t bnt1_state_count = 0;
     
+    uint16_t pre_TMR3 = 0x0;
+    uint16_t current_TMR3 = 0x0;
+    
     while(1) {
-        // for Q1 LED4
+        current_TMR3 = TMR3;
+        
+        // for Q1 LED
         LED4_PORT ^= 1;
         
         // for Q4
         if(++iteration==25000){
-            lcdPrintTime();
-            lcdPrintCounter();
+            lcdPrintTime(); //Q4
+            lcdPrintCounter(current_TMR3 - pre_TMR3); //Q6
             iteration = 0;
         }
         bnt1_state_previous = bnt1_state_current;
         bnt1_state_current  = BTN1_PRESSED();
         
+        //debouncing
         if(bnt1_state_current != bnt1_state_previous){
             if (bnt1_state_count > 8){
                 if (bnt1_state_current == 1){
@@ -195,36 +205,11 @@ int main(){
             bnt1_state_count += 1;
         }
         
-        
-//        __delay_ms(1000);
-//        if (bnt1_state_current == 1){
-//            IEC1bits.INT1IE = 1;
-//        }
-        
-//        if(bnt1_state_current != bnt1_state_pre) {
-//            new = clock();
-//            if(bnt1_state_current == 1){
-//                time_escaped = (uint32_t)(new-old);
-//                lcd_locate(1,4);
-//                lcd_printf("%u",time_escaped);
-//                if (time_escaped > DEBOUNCE_TIME){
-//                    // do someting
-//                    
-//                    //lcd_printf("hello!");
-//                }      
-//            }
-//            old = new;
-//            bnt1_state_pre = bnt1_state_current;
-//        }
-        
-        
-            
-        LED4_PORT ^= 0;
+           
+        //LED4_PORT ^= 0;
         //__delay_ms(100);
+        pre_TMR3 = current_TMR3;
     }
-    
-    
-    
     return 0;
 }
 
