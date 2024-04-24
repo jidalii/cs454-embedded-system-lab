@@ -1,0 +1,31 @@
+
+SERVER = lab3_server
+SERVER_OBJS = $(SERVER).o pc_crc16.o
+TROLL = lab3_troll
+TROLL_OBJS = $(TROLL).o
+SERIALDEBUG = serialdebug
+SERIALDEBUG_OBJS = $(SERIALDEBUG).o
+
+CC = gcc
+CFLAGS = -I.. -g -Wall
+
+
+all : server
+
+# Server (PC)
+server : $(SERVER_OBJS)
+	$(CC) $(CFLAGS) -o $(SERVER) $(SERVER_OBJS) $(LIBS)
+
+# Troll (PC)
+troll : $(TROLL_OBJS)
+	$(CC) $(CFLAGS) -o $(TROLL) $(TROLL_OBJS) $(LIBS)
+
+# Debug tool (PC)
+serialdebug : $(SERIALDEBUG_OBJS)
+	$(CC) $(CFLAGS) -o $(SERIALDEBUG) $(SERIALDEBUG_OBJS) $(LIBS)
+
+.c.o :
+	$(CC) $(CFLAGS) -c $< -o $(<:.c=.o)
+
+clean : 
+	rm -f *.o $(SERVER) $(TROLL) $(SERIALDEBUG)
