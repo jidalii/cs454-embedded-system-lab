@@ -1,0 +1,12 @@
+name: abs_env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.9
+  - conda-forge:pybullet
+  - scipy
+  - gymnasium
+  - matplotlib
+  - numpy
+  - pip
