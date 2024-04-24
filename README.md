@@ -1,6 +1,6 @@
 # cs454/654 Embedded System Lab
 
-- [x] Lab0: Hello Wold
+- [x] Lab0: Hello World
 - [x] Lab1: LCD Module and Digital I/O
 - [x] Lab2: Interrupts and Timers
 - [x] Lab3.1: Serial Communication (Server Part)
